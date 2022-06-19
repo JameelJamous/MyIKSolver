@@ -4,7 +4,11 @@
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <vector>
+#include <optional>
 #include "Visitor.h"
+
+using vectOpt = std::optional<std::vector<std::string>>;
 
 class FileManager {
 
@@ -19,21 +23,21 @@ public:
 
 	FileManager& operator<<(Visitor* aVisitor);
 
-	void saveContents(std::string aFileName, bool overwrite = false);
-	void loadContents();
+	bool saveContents(std::string aFileName, bool overwrite = false);
+	bool loadContents(std::string aFileName);
 
-	void loadInto(Visitor* aVisitor);
+	void loadInto(Visitor* aVisitor, std::string extracted);
 	void save(Visitor* aVisitor);
 	
 
 
 private:
-	bool hasContent();
-	bool insertToFile(bool appending = false);
-	bool extractFromFile();
+	bool insertToFile(std::string aPath, bool overwrite = false);
+	bool extractFromFile(std::string aPath);
 
-	std::string theFilePath;
+	std::string theFolderPath;
 	std::string theData;
+	std::vector<std::string> fileLines;
 
 	std::list<Visitor*> theVisitorList;
 

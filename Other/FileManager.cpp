@@ -9,11 +9,12 @@ FileManager::FileManager(){ /* Do Nothing*/ }
 
 FileManager::FileManager(const FileManager& aCopy) { *this = aCopy; }
 
-FileManager::FileManager(std::string aPath) { theFilePath = aPath; }
+FileManager::FileManager(std::string aPath) { theFolderPath = aPath; }
 
-FileManager::FileManager(const char* aPath) { theFilePath = aPath; }
+FileManager::FileManager(const char* aPath) { theFolderPath = aPath; }
 
-FileManager& FileManager::operator=(const FileManager& aCopy) { theFilePath = aCopy.theFilePath; theData = aCopy.theData;
+FileManager& FileManager::operator=(const FileManager& aCopy) {
+    theFolderPath = aCopy.theFolderPath; theData = aCopy.theData;
 	return *this;
 }
 
@@ -25,28 +26,41 @@ FileManager& FileManager::operator<<(Visitor* aVisitor) {
     return *this;
 }
 
-void FileManager::saveContents(std::string aFileName, bool overwrite) {
-    theFilePath.append("\\" + aFileName);
-    if (!theFilePath.ends_with(".rob"))
-        theFilePath.append(".rob");
+bool FileManager::saveContents(std::string aFileName, bool overwrite) {
+    std::string theCompletePath = theFolderPath + "\\" + aFileName;
+    if (!theCompletePath.ends_with(".rob"))
+        theCompletePath.append(".rob");
 
     for (auto& item : theVisitorList) {
-        save(item);
+        save(item); //EDIT: change name to add? bc it adds data from item or addDataFrom(item);
     }
+
+    return insertToFile(theCompletePath, overwrite); //EDIT: change name to writeTo(theCompletePath,overwrite)
 }
 
- 
+bool FileManager::loadContents(std::string aFileName) {
+    std::string theCompletePath = theFolderPath + "\\" + aFileName;
+    if (!theCompletePath.ends_with(".rob"))
+        theCompletePath.append(".rob");
+    /* each new line is a new visitor's data */
+    extractFromFile(theCompletePath); //FIX: loads the last line twice
+    int i = 0;
+    for (auto& item : theVisitorList) {
+        loadInto(item, fileLines[i]);
+        i++;
+    }
+
+    return true;
+}
+
 
 void FileManager::save(Visitor* aVisitor) {
 	theData.append(aVisitor->save());
-
-    insertToFile((hasContent()) ? true : false); /* put theData in the file */
-    
 }
 
-void FileManager::loadInto(Visitor* aVisitor) {
+void FileManager::loadInto(Visitor* aVisitor, std::string extracted) {
     /* extract the correct line from the file and store in theData */
-	aVisitor->load(theData);
+	aVisitor->load(extracted); //FIX: type is saveing (revolute\n10.00000)
 }
 
 
@@ -57,19 +71,10 @@ void FileManager::loadInto(Visitor* aVisitor) {
 // Private Members
 //------------------------------------------------
 
-bool FileManager::hasContent() {
-    std::ifstream inFile(theFilePath);
-    inFile.seekg(0, inFile.end);
-    long size = inFile.tellg();
+bool FileManager::insertToFile(std::string aPath, bool overwrite) {
 
-    inFile.close();
-    return (size > 0) ? true : false;
-}
-
-bool FileManager::insertToFile(bool appending) {
-
-    std::ofstream outFile(theFilePath,
-        (appending) ? std::ios_base::app : std::ios_base::out);
+    std::ofstream outFile(aPath,
+        (overwrite) ? std::ios_base::out : std::ios_base::app);
 
     if (!(outFile << theData << "\n")) {
         std::cerr << "Failed to write to file" << std::endl;
@@ -81,35 +86,18 @@ bool FileManager::insertToFile(bool appending) {
     return true;
 }
 
-bool FileManager::extractFromFile() {
+bool FileManager::extractFromFile(std::string aPath) {
     std::ifstream aFileStream;
-    aFileStream.open(theFilePath);
+    aFileStream.open(aPath);
     if (aFileStream.is_open()) {
+        std::string content = "";
+        while (!aFileStream.eof()) {
+            aFileStream >> content;
+            fileLines.push_back(content);
+        }
 
-        // get length of file:
-        aFileStream.seekg(0, aFileStream.end);
-        int length = aFileStream.tellg();
-        aFileStream.seekg(0, aFileStream.beg);
-
-        char* buffer = new char[length];
-
-        std::cout << "Reading " << length << " characters... ";
-        // read data as a block:
-        aFileStream.read(buffer, length);
-
-        if (aFileStream)
-            std::cout << "all characters read successfully.\n";
-        else
-            std::cout << "error: only " << aFileStream.gcount() << " could be read";
+        fileLines.pop_back();
         aFileStream.close();
-
-
-        std::cout.write(buffer, length);
-        // ...buffer contains the entire file...
-
-        theData = buffer;
-
-        delete[] buffer;
         return true;
     }
 

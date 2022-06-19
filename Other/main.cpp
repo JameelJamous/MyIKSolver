@@ -3,7 +3,7 @@
 
 int main() {
 
-	std::string theFolderPath = "C:\\Users\\Jameel\\Desktop\\Summer2022";
+	std::string theFolderPath = "C:\\Users\\Jameel\\Desktop\\Summer 2022";
 	FileManager aFileManager(theFolderPath);
 
 	Joint joint1(10.0, 150.0, 0.0, "revolute");
@@ -15,6 +15,7 @@ int main() {
 	// aFileManager.loadContents()
 
 	aFileManager << &joint1 << &joint2 << &joint3;
-	aFileManager.saveContents("aTestName.rob", false);
+	aFileManager.saveContents("anotherTest", true);
+	aFileManager.loadContents("anotherTest");
 	return 0;
 }
