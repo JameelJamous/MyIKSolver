@@ -18,6 +18,10 @@ Joint& Joint::operator=(const Joint& aCopy) {
 
 Joint::~Joint(){ /* Do Nothing */ }
 
+float Joint::getParam(size_t paramNo) { return jointParams[paramNo]; }
+
+std::string Joint::getType() { return type; }
+
 std::string Joint::save() const {
 	std::string outStr;
 	outStr += std::to_string(jointParams[0]) + "," + std::to_string(jointParams[1]) +

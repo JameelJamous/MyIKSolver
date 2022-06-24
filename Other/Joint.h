@@ -14,13 +14,26 @@ public:
 	Joint& operator=(const Joint& aCopy);
 	~Joint();
 
+	void defineType(std::string aType);
+	void defineAngles(float maxAngle = 0, float minAngle = 0);
+	void defineDistance(float distanceToNext = 0);
+
+	float getParam(size_t paramNo);
+
+	std::string getType();
 
 	std::string save() const override;
 	void load(std::string theData) override;
 
+public:
+
+	float curAngle;
+
 private:
 
 	listOpt splitCSV(std::string theData);
+
+private:
 
 	std::vector<float> jointParams; //1st - distanceToNext, 2nd - maxAngle, 3rd - minAngle
 	std::string type;

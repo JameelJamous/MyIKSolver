@@ -20,6 +20,9 @@ FileManager& FileManager::operator=(const FileManager& aCopy) {
 
 FileManager::~FileManager() { /* Do Nothing */ }
 
+void FileManager::clearVisitors() { theVisitorList.clear(); }
+
+void  FileManager::specifyFolderPath(std::string aPath) { theFolderPath = aPath; }
 
 FileManager& FileManager::operator<<(Visitor* aVisitor) {
     theVisitorList.push_back(aVisitor);
@@ -32,10 +35,10 @@ bool FileManager::saveContents(std::string aFileName, bool overwrite) {
         theCompletePath.append(".rob");
 
     for (auto& item : theVisitorList) {
-        save(item); //EDIT: change name to add? bc it adds data from item or addDataFrom(item);
+        addDataFrom(item);
     }
 
-    return insertToFile(theCompletePath, overwrite); //EDIT: change name to writeTo(theCompletePath,overwrite)
+    return insertToFile(theCompletePath, overwrite);
 }
 
 bool FileManager::loadContents(std::string aFileName) {
@@ -43,7 +46,7 @@ bool FileManager::loadContents(std::string aFileName) {
     if (!theCompletePath.ends_with(".rob"))
         theCompletePath.append(".rob");
     /* each new line is a new visitor's data */
-    extractFromFile(theCompletePath); //FIX: loads the last line twice
+    extractFromFile(theCompletePath);
     int i = 0;
     for (auto& item : theVisitorList) {
         loadInto(item, fileLines[i]);
@@ -53,23 +56,13 @@ bool FileManager::loadContents(std::string aFileName) {
     return true;
 }
 
-
-void FileManager::save(Visitor* aVisitor) {
-	theData.append(aVisitor->save());
-}
-
-void FileManager::loadInto(Visitor* aVisitor, std::string extracted) {
-    /* extract the correct line from the file and store in theData */
-	aVisitor->load(extracted); //FIX: type is saveing (revolute\n10.00000)
-}
-
-
-
-
-
 //------------------------------------------------
 // Private Members
 //------------------------------------------------
+
+void FileManager::addDataFrom(Visitor* aVisitor) { theData.append(aVisitor->save()); }
+
+void FileManager::loadInto(Visitor* aVisitor, std::string extracted) { aVisitor->load(extracted); }
 
 bool FileManager::insertToFile(std::string aPath, bool overwrite) {
 
@@ -100,6 +93,6 @@ bool FileManager::extractFromFile(std::string aPath) {
         aFileStream.close();
         return true;
     }
-
+    aFileStream.close();
     return false;
 }
